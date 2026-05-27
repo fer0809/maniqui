@@ -34,3 +34,26 @@ Para ejecutar este script y configurar la base de datos, sigue estos pasos:
 El script incluye la creación y carga de datos para:
 - **piezas**: Gestión de componentes (Cabezas, Torsos, Brazos, Piernas).
 - **maniquies**: Registro de ensamblaje de maniquíes completos.
+
+## Consultas de Ejemplo
+Puedes probar estas consultas para verificar los datos:
+
+### Listar maniquíes completos con sus piezas
+```sql
+SELECT 
+    m.numero_serie AS 'Maniquí',
+    m.estado AS 'Estado Ensamble',
+    c.material AS 'Material',
+    c.color AS 'Color'
+FROM maniquies m
+INNER JOIN piezas c ON m.id_cabeza = c.id_pieza;
+```
+
+### Ver piezas sueltas en stock
+```sql
+SELECT * FROM piezas WHERE estado = 'Disponible';
+```
+
+---
+**Autor:** Fer (fer0809)
+**Institución:** Instituto 166 - Tercer Año
