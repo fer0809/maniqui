@@ -57,3 +57,25 @@ SELECT * FROM piezas WHERE estado = 'Disponible';
 ---
 **Autor:** Fer (fer0809)
 **Institución:** Instituto 166 - Tercer Año
+
+## Backend (Express.js)
+Se ha incluido un servidor básico para manejar las peticiones del frontend.
+
+### Requisitos
+- [Node.js](https://nodejs.org/) instalado.
+
+### Cómo ejecutar el servidor
+1. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+2. Inicia el servidor:
+   ```bash
+   node server.js
+   ```
+3. El servidor estará disponible en: `http://localhost:3000`
+
+### Endpoints disponibles
+- `GET /api/piezas`: Lista todas las piezas.
+- `POST /api/piezas`: Agrega una pieza.
+- `GET /api/maniquies`: Lista maniquíes con sus detalles.
