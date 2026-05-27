@@ -1,81 +1,32 @@
-# Gestión de Maniquíes y Piezas
+# Trabajo Práctico: Fábrica de Maniquíes (Parte II)
 
-Este proyecto contiene un script SQL para la gestión de maniquíes y sus componentes físicos.
+Este repositorio contiene la implementación técnica de la base de datos para la gestión de una fábrica de maniquíes, incluyendo su estructura, carga de datos y consultas de verificación.
 
-## Cómo empezar (Configuración de la Base de Datos)
+## Estructura del Proyecto
 
-Para ejecutar este script y configurar la base de datos, sigue estos pasos:
+Los scripts SQL están organizados de forma independiente para asegurar una correcta ejecución:
 
-### 1. Requisitos
-- Tener instalado **MariaDB** o **MySQL**.
-- Un cliente SQL (consola, phpMyAdmin, DBeaver, etc.).
+1.  **`creates.sql`**: Define la estructura de la base de datos `fabrica_maniquies`, crea las tablas y establece las restricciones de integridad (Primary Keys, Foreign Keys, NOT NULL).
+2.  **`inserts.sql`**: Contiene la carga inicial de datos de prueba (10 registros por cada tipo de pieza y 5 maniquíes completos).
+3.  **`queries.sql`**: Incluye las consultas de verificación solicitadas para validar el funcionamiento del sistema.
 
-### 2. Pasos para la instalación
+## Instrucciones de Ejecución
 
-#### Opción A: Desde la terminal (Recomendado)
-1. Abre tu terminal o consola de comandos.
-2. Crea la base de datos (opcional):
-   ```sql
-   CREATE DATABASE maniqui_db;
-   USE maniqui_db;
-   ```
-3. Ejecuta el script:
-   ```bash
-   mysql -u tu_usuario -p maniqui_db < maniqui.sql
-   ```
+Para poner en marcha la base de datos, ejecute los scripts en el siguiente orden:
 
-#### Opción B: Desde phpMyAdmin
-1. Crea una nueva base de datos llamada `maniqui_db`.
-2. Haz clic en la pestaña **Importar**.
-3. Selecciona el archivo `maniqui.sql` de este repositorio.
-4. Haz clic en **Continuar/Ejecutar**.
-
-## Estructura de la Base de Datos
-El script incluye la creación y carga de datos para:
-- **piezas**: Gestión de componentes (Cabezas, Torsos, Brazos, Piernas).
-- **maniquies**: Registro de ensamblaje de maniquíes completos.
-
-## Consultas de Ejemplo
-Puedes probar estas consultas para verificar los datos:
-
-### Listar maniquíes completos con sus piezas
-```sql
-SELECT 
-    m.numero_serie AS 'Maniquí',
-    m.estado AS 'Estado Ensamble',
-    c.material AS 'Material',
-    c.color AS 'Color'
-FROM maniquies m
-INNER JOIN piezas c ON m.id_cabeza = c.id_pieza;
-```
-
-### Ver piezas sueltas en stock
-```sql
-SELECT * FROM piezas WHERE estado = 'Disponible';
-```
+1.  **Crear la estructura:**
+    ```bash
+    mysql -u tu_usuario -p < creates.sql
+    ```
+2.  **Cargar los datos:**
+    ```bash
+    mysql -u tu_usuario -p fabrica_maniquies < inserts.sql
+    ```
+3.  **Realizar consultas de verificación:**
+    ```bash
+    mysql -u tu_usuario -p fabrica_maniquies < queries.sql
+    ```
 
 ---
-**Autor:** Fer (fer0809)
+**Autor:** Fer (fer0809)  
 **Institución:** Instituto 166 - Tercer Año
-
-## Backend (Express.js)
-Se ha incluido un servidor básico para manejar las peticiones del frontend.
-
-### Requisitos
-- [Node.js](https://nodejs.org/) instalado.
-
-### Cómo ejecutar el servidor
-1. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-2. Inicia el servidor:
-   ```bash
-   node server.js
-   ```
-3. El servidor estará disponible en: `http://localhost:3000`
-
-### Endpoints disponibles
-- `GET /api/piezas`: Lista todas las piezas.
-- `POST /api/piezas`: Agrega una pieza.
-- `GET /api/maniquies`: Lista maniquíes con sus detalles.
