@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: mariadb_maniquies
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=admin
+      - MARIADB_DATABASE=fabrica_maniquies
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mariadb_data:/var/lib/mysql
+      - ./creates.sql:/docker-entrypoint-initdb.d/1-creates.sql
+      - ./inserts.sql:/docker-entrypoint-initdb.d/2-inserts.sql
+
+networks:
+  default:
+    name: red_maniquies

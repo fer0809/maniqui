@@ -1,0 +1,58 @@
+# API REST Client
+# ----------------------------------------
+# Peticiones listas para usar en la extensión REST Client de VS Code
+
+@host = http://localhost:3000
+
+### 0. Probar estado del Servidor (GET /)
+# Debería retornar un mensaje JSON amigable confirmando que el servidor está online.
+GET {{host}}/
+Accept: application/json
+
+###
+
+### 1. Obtener todas las piezas (GET)
+GET {{host}}/api/piezas
+Accept: application/json
+
+###
+
+### 2. Ensamblar un nuevo Maniquí (POST - Éxito)
+# Crea el maniquí MQ-SERIE-999 usando piezas disponibles (IDs: 7, 17, 27, 37)
+POST {{host}}/api/maniquies
+Content-Type: application/json
+
+{
+  "numero_serie": "MQ-SERIE-999",
+  "id_cabeza": 7,
+  "id_torso": 17,
+  "id_brazos": 27,
+  "id_piernas": 37
+}
+
+###
+
+### 3. Ensamblar un nuevo Maniquí (POST - Error: Piezas ya ocupadas)
+# Debería retornar error 400 ya que las piezas habrán cambiado a estado "Ensamblado"
+POST {{host}}/api/maniquies
+Content-Type: application/json
+
+{
+  "numero_serie": "MQ-SERIE-DUP",
+  "id_cabeza": 7,
+  "id_torso": 17,
+  "id_brazos": 27,
+  "id_piernas": 37
+}
+
+###
+
+### 4. Ensamblar un nuevo Maniquí (POST - Error: Faltan campos)
+# Debería retornar error 400 por falta de campos obligatorios
+POST {{host}}/api/maniquies
+Content-Type: application/json
+
+{
+  "numero_serie": "MQ-INCOMPLETO",
+  "id_cabeza": 6
+}

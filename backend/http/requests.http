@@ -1,0 +1,61 @@
+# REST Client Requests for Mannequin Backend
+# ----------------------------------------
+# Puedes ejecutar estas peticiones directamente si usas la extensión REST Client
+# en VS Code, WebStorm, o herramientas similares.
+
+@host = http://localhost:3000
+
+### 0. Probar estado del Servidor (GET /)
+# Debería retornar un mensaje JSON amigable confirmando que el servidor está online.
+GET {{host}}/
+Accept: application/json
+
+###
+
+### 1. Obtener todas las piezas
+# Retorna todas las piezas en la base de datos (cabezas, torsos, brazos, piernas).
+GET {{host}}/api/piezas
+Accept: application/json
+
+###
+
+### 2. Ensamblar un nuevo Maniquí (Caso Exitoso)
+# Crea un nuevo maniquí y cambia automáticamente el estado de las piezas a "Ensamblado".
+# Nota: Se usan los IDs 7, 17, 27 y 37 porque están registrados como "Disponible" en la BD.
+POST {{host}}/api/maniquies
+Content-Type: application/json
+
+{
+  "numero_serie": "MQ-SERIE-999",
+  "id_cabeza": 7,
+  "id_torso": 17,
+  "id_brazos": 27,
+  "id_piernas": 37
+}
+
+###
+
+### 3. Ensamblar un nuevo Maniquí (Fallo por pieza ya ocupada)
+# Intenta volver a usar una de las piezas ya ocupadas. Debería retornar un error 400.
+POST {{host}}/api/maniquies
+Content-Type: application/json
+
+{
+  "numero_serie": "MQ-SERIE-DUP",
+  "id_cabeza": 7,
+  "id_torso": 17,
+  "id_brazos": 27,
+  "id_piernas": 37
+}
+
+###
+
+### 4. Ensamblar un nuevo Maniquí (Fallo por campos faltantes)
+# Intenta enviar una petición incompleta. Debería retornar un error 400.
+POST {{host}}/api/maniquies
+Content-Type: application/json
+
+{
+  "numero_serie": "MQ-INCOMPLETO",
+  "id_cabeza": 6
+}
