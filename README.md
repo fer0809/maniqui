@@ -1,31 +1,54 @@
 # Trabajo Práctico: Fábrica de Maniquíes (Parte II)
 
-Este repositorio contiene la implementación técnica de la base de datos para la gestión de una fábrica de maniquíes, incluyendo su estructura, carga de datos y consultas de verificación.
+Este repositorio contiene la implementación técnica de la base de datos y el backend para la gestión de una fábrica de maniquíes.
 
 ## Estructura del Proyecto
 
-Los scripts SQL están organizados de forma independiente para asegurar una correcta ejecución:
+El proyecto ha sido reestructurado para separar las responsabilidades:
 
-1.  **`creates.sql`**: Define la estructura de la base de datos `fabrica_maniquies`, crea las tablas y establece las restricciones de integridad (Primary Keys, Foreign Keys, NOT NULL).
-2.  **`inserts.sql`**: Contiene la carga inicial de datos de prueba (10 registros por cada tipo de pieza y 5 maniquíes completos).
-3.  **`queries.sql`**: Incluye las consultas de verificación solicitadas para validar el funcionamiento del sistema.
+-   **`backend/`**: API desarrollada en Node.js (Express) para interactuar con la base de datos. Incluye definiciones de rutas y archivos `.http` para pruebas.
+-   **`database/`**: Contiene toda la lógica de persistencia.
+    -   `creates.sql`: Estructura de la base de datos.
+    -   `inserts.sql`: Datos de prueba iniciales.
+    -   `queries.sql`: Consultas de verificación.
+    -   `docker-compose.yml`: Configuración para levantar una instancia de MariaDB automáticamente.
+-   **`legacy/`**: Versiones anteriores del servidor para referencia.
 
 ## Instrucciones de Ejecución
 
-Para poner en marcha la base de datos, ejecute los scripts en el siguiente orden:
+### Base de Datos (Docker)
 
-1.  **Crear la estructura:**
+La forma más sencilla de iniciar la base de datos es utilizando Docker:
+
+1.  Navegar a la carpeta de base de datos:
     ```bash
-    mysql -u tu_usuario -p < creates.sql
+    cd database
     ```
-2.  **Cargar los datos:**
+2.  Levantar el contenedor:
     ```bash
-    mysql -u tu_usuario -p fabrica_maniquies < inserts.sql
+    docker-compose up -d
     ```
-3.  **Realizar consultas de verificación:**
+
+Esto iniciará una instancia de MariaDB en el puerto `3306`.
+
+### Backend
+
+Para iniciar el servidor de desarrollo:
+
+1.  Navegar a la carpeta del backend:
     ```bash
-    mysql -u tu_usuario -p fabrica_maniquies < queries.sql
+    cd backend
     ```
+2.  Instalar dependencias:
+    ```bash
+    npm install
+    ```
+3.  Iniciar el servidor:
+    ```bash
+    npm start
+    ```
+
+El servidor estará disponible en `http://localhost:3000`.
 
 ---
 **Autor:** Fer (fer0809)  
