@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Fábrica de Maniquíes</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        main {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        .stat-card h3 { margin: 0; color: var(--secondary); font-size: 0.8rem; text-transform: uppercase; }
+        .stat-card p { margin: 5px 0 0; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        th { background-color: #f8f9fa; }
+
+        .status-badge {
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .status-disponible { background: #d4edda; color: #155724; }
+        .status-ensamblado { background: #fff3cd; color: #856404; }
+
+        /* Formulario */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-primary { background-color: var(--accent); color: white; }
+        .btn-primary:hover { background-color: #2980b9; }
+        
+        .btn-refresh { background-color: var(--secondary); color: white; width: auto; padding: 8px 15px; margin-bottom: 10px; }
+
+        #message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Fábrica de Maniquíes - Gestión Pro</h1>
+</header>
+
+<main>
+    <div class="grid-layout">
+        
+        <!-- Columna Izquierda: Inventario y Maniquíes -->
+        <div class="left-col">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Inventario de Piezas</h2>
+                    <button class="btn btn-refresh" onclick="loadData()">🔄 Actualizar</button>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-card"><h3>Total</h3><p id="total-piezas">0</p></div>
+                    <div class="stat-card"><h3>Libres</h3><p id="piezas-disponibles">0</p></div>
+                    <div class="stat-card"><h3>Uso</h3><p id="piezas-ensambladas">0</p></div>
+                </div>
+
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Serie</th>
+                                <th>Tipo</th>
+                                <th>Material</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Maniquíes Ensamblados</h2>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Fecha</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maniquies-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Formulario -->
+        <div class="right-col">
+            <div class="card">
+                <h2>Ensamblar Maniquí</h2>
+                <form id="assemble-form">
+                    <div class="form-group">
+                        <label>Código del Maniquí</label>
+                        <input type="text" id="m-codigo" placeholder="Ej: MQ-2026-X" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Seleccionar Cabeza</label>
+                        <select id="sel-cabeza" required><option value="">Cargando...</option></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Seleccionar Torso</label>
+                        <select id="sel-torso" required><option value="">Cargando...</option></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Seleccionar Brazos</label>
+                        <select id="sel-brazos" required><option value="">Cargando...</option></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Seleccionar Piernas</label>
+                        <select id="sel-piernas" required><option value="">Cargando...</option></select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">🔨 Crear Maniquí</button>
+                </form>
+                <div id="message"></div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    async function loadData() {
+        try {
+            const respPiezas = await fetch('http://localhost:3000/api/piezas');
+            const piezas = await respPiezas.json();
+            updateDashboard(piezas);
+            fillSelects(piezas);
+
+            const respManiquis = await fetch('http://localhost:3000/api/maniquies');
+            const maniquis = await respManiquis.json();
+            updateManiquisList(maniquis);
+        } catch (error) {
+            console.error('Error:', error);
+            showMsg('Error al conectar con el servidor', true);
+        }
+    }
+
+    function updateDashboard(piezas) {
+        const tbody = document.getElementById('inventory-body');
+        tbody.innerHTML = '';
+        let disponibles = 0;
+        let ensambladas = 0;
+
+        piezas.forEach(p => {
+            if (p.estado === 'Disponible') disponibles++;
+            else ensambladas++;
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${p.numero_serie}</strong></td>
+                    <td>${p.tipo_pieza}</td>
+                    <td>${p.material}</td>
+                    <td><span class="status-badge ${p.estado === 'Disponible' ? 'status-disponible' : 'status-ensamblado'}">${p.estado}</span></td>
+                </tr>
+            `;
+        });
+        document.getElementById('total-piezas').innerText = piezas.length;
+        document.getElementById('piezas-disponibles').innerText = disponibles;
+        document.getElementById('piezas-ensambladas').innerText = ensambladas;
+    }
+
+    function updateManiquisList(maniquis) {
+        const tbody = document.getElementById('maniquies-body');
+        tbody.innerHTML = '';
+        maniquis.forEach(m => {
+            const fecha = new Date(m.fecha_ensamblaje).toLocaleDateString();
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${m.codigo_maniqui}</strong></td>
+                    <td>${fecha}</td>
+                    <td>
+                        <button class="btn" style="background:var(--danger); color:white; padding:5px 10px; font-size:0.8rem; width:auto;" onclick="deleteManiqui(${m.id_maniqui})">🗑 Borrar</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function fillSelects(piezas) {
+        const types = ['Cabeza', 'Torso', 'Brazos', 'Piernas'];
+        types.forEach(type => {
+            const select = document.getElementById(`sel-${type.toLowerCase()}`);
+            select.innerHTML = `<option value="">-- Seleccionar ${type} --</option>`;
+            piezas.filter(p => p.tipo_pieza === type && p.estado === 'Disponible')
+                  .forEach(p => {
+                      select.innerHTML += `<option value="${p.id_pieza}">${p.numero_serie} (${p.material})</option>`;
+                  });
+        });
+    }
+
+    async function deleteManiqui(id) {
+        if (!confirm('¿Seguro que quieres eliminar este maniquí?')) return;
+        try {
+            const response = await fetch(`http://localhost:3000/api/maniquies/${id}`, { method: 'DELETE' });
+            if (response.ok) { loadData(); showMsg('✅ Eliminado'); }
+        } catch (error) { showMsg('❌ Error al borrar', true); }
+    }
+
+    document.getElementById('assemble-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const data = {
+            numero_serie: document.getElementById('m-codigo').value,
+            id_cabeza: parseInt(document.getElementById('sel-cabeza').value),
+            id_torso: parseInt(document.getElementById('sel-torso').value),
+            id_brazos: parseInt(document.getElementById('sel-brazos').value),
+            id_piernas: parseInt(document.getElementById('sel-piernas').value)
+        };
+        try {
+            const response = await fetch('http://localhost:3000/api/maniquies', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (response.ok) {
+                showMsg('✅ Creado');
+                document.getElementById('assemble-form').reset();
+                loadData();
+            }
+        } catch (error) { showMsg('❌ Error de conexión', true); }
+    };
+
+    function showMsg(txt, isError = false) {
+        const msg = document.getElementById('message');
+        msg.innerText = txt;
+        msg.style.display = 'block';
+        msg.style.backgroundColor = isError ? '#f8d7da' : '#d4edda';
+        setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    }
+
+    window.onload = loadData;
+</script>
+</body>
+</html>

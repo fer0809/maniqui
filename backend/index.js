@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +10,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 const dbConfig = {
     host: process.env.DB_HOST,
@@ -23,6 +27,7 @@ async function getConnection() {
 }
 
 // Ruta por defecto para confirmar que el servidor está online
+/* 
 app.get('/', (req, res) => {
     res.json({
         mensaje: 'Bienvenido al Backend del Sistema de Maniquíes',
@@ -33,6 +38,7 @@ app.get('/', (req, res) => {
         }
     });
 });
+*/
 
 app.get('/api/piezas', async (req, res) => {
     try {
@@ -42,6 +48,55 @@ app.get('/api/piezas', async (req, res) => {
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: 'Error de BD: ' + error.message });
+    }
+});
+
+app.get('/api/maniquies', async (req, res) => {
+    try {
+        const connection = await getConnection();
+        const [rows] = await connection.execute('SELECT * FROM maniquies');
+        await connection.end();
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Error de BD: ' + error.message });
+    }
+});
+
+app.delete('/api/maniquies/:id', async (req, res) => {
+    const { id } = req.params;
+    let connection;
+    try {
+        connection = await getConnection();
+        await connection.beginTransaction();
+
+        // 1. Obtener IDs de las piezas antes de borrar el maniquí
+        const [maniquis] = await connection.execute(
+            'SELECT id_cabeza, id_torso, id_brazos, id_piernas FROM maniquies WHERE id_maniqui = ?',
+            [id]
+        );
+
+        if (maniquis.length === 0) {
+            throw new Error('Maniquí no encontrado');
+        }
+
+        const { id_cabeza, id_torso, id_brazos, id_piernas } = maniquis[0];
+
+        // 2. Liberar las piezas (volver a "Disponible")
+        await connection.execute(
+            'UPDATE piezas SET estado = "Disponible" WHERE id_pieza IN (?, ?, ?, ?)',
+            [id_cabeza, id_torso, id_brazos, id_piernas]
+        );
+
+        // 3. Borrar el maniquí
+        await connection.execute('DELETE FROM maniquies WHERE id_maniqui = ?', [id]);
+
+        await connection.commit();
+        res.json({ message: 'Maniquí eliminado y piezas liberadas' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        res.status(400).json({ error: error.message });
+    } finally {
+        if (connection) await connection.end();
     }
 });
 
