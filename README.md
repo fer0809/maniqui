@@ -1,54 +1,64 @@
 # Trabajo Práctico: Fábrica de Maniquíes (Parte II)
 
-Este repositorio contiene la implementación técnica de la base de datos y el backend para la gestión de una fábrica de maniquíes.
+Este repositorio contiene la implementación técnica de una aplicación completa para la gestión de una fábrica de maniquíes, utilizando una arquitectura de microservicios con React, Node.js y MariaDB.
 
 ## Estructura del Proyecto
 
-El proyecto ha sido reestructurado para separar las responsabilidades:
+El proyecto está organizado de la siguiente manera:
 
--   **`backend/`**: API desarrollada en Node.js (Express) para interactuar con la base de datos. Incluye definiciones de rutas y archivos `.http` para pruebas.
--   **`database/`**: Contiene toda la lógica de persistencia.
-    -   `creates.sql`: Estructura de la base de datos.
-    -   `inserts.sql`: Datos de prueba iniciales.
-    -   `queries.sql`: Consultas de verificación.
-    -   `docker-compose.yml`: Configuración para levantar una instancia de MariaDB automáticamente.
--   **`legacy/`**: Versiones anteriores del servidor para referencia.
+-   **`frontend/`**: Aplicación moderna desarrollada en **React + Vite**. Proporciona una interfaz intuitiva con estados reactivos y confirmaciones personalizadas (Glassmorphism).
+-   **`backend/`**: API desarrollada en **Node.js (Express)** que gestiona la lógica de negocio y la comunicación con la base de datos.
+-   **`database/`**: Configuración de persistencia con **MariaDB** y **Docker Compose**.
+-   **`legacy/`**: Versiones anteriores para referencia histórica.
 
-## Instrucciones de Ejecución
+---
 
-### Base de Datos (Docker)
+## 🚀 Guía de Inicio Rápido
 
-La forma más sencilla de iniciar la base de datos es utilizando Docker:
+Para poner en marcha todo el sistema, sigue estos pasos en orden:
 
-1.  Navegar a la carpeta de base de datos:
-    ```bash
-    cd database
-    ```
-2.  Levantar el contenedor:
-    ```bash
-    docker-compose up -d
-    ```
+### 1. Base de Datos (MariaDB)
+Utiliza Docker para levantar el motor de base de datos de forma aislada:
+```bash
+cd database
+docker-compose up -d
+```
+*Esto creará el contenedor e inicializará las tablas automáticamente.*
 
-Esto iniciará una instancia de MariaDB en el puerto `3306`.
+### 2. Backend (API)
+Inicia el servidor que conecta la interfaz con los datos:
+```bash
+cd backend
+npm install
+npm run dev
+```
+*El backend escuchará en el puerto `3000`.*
 
-### Backend
+### 3. Frontend (React)
+Finalmente, arranca la interfaz de usuario:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+*Vite levantará el sitio en [http://localhost:5173](http://localhost:5173).*
 
-Para iniciar el servidor de desarrollo:
+---
 
-1.  Navegar a la carpeta del backend:
-    ```bash
-    cd backend
-    ```
-2.  Instalar dependencias:
-    ```bash
-    npm install
-    ```
-3.  Iniciar el servidor:
-    ```bash
-    npm start
-    ```
+## 🛠 Comandos Útiles
 
-El servidor estará disponible en `http://localhost:3000`.
+| Servicio | Comando de Inicio | Puerto |
+| :--- | :--- | :--- |
+| **Base de Datos** | `docker-compose up -d` | 3306 |
+| **Backend** | `npm run dev` | 3000 |
+| **Frontend** | `npm run dev` | 5173 |
+
+---
+
+## ⚠️ Requisitos
+- **Node.js** (v18 o superior)
+- **Docker** y **Docker Compose**
+- **Git**
 
 ---
 **Autor:** Fer (fer0809)  
