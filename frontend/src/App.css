@@ -205,6 +205,7 @@ input, select {
     font-size: 0.875rem;
     transition: all 0.2s;
     background-color: #ffffff;
+    box-sizing: border-box;
 }
 
 input:focus, select:focus {
