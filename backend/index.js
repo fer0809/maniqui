@@ -1,152 +1,31 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2/promise');
 const path = require('path');
+const apiRoutes = require('./src/routes/api');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Rutas de la API
+app.use('/api', apiRoutes);
 
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: 3306
-};
+// Servir archivos estáticos si fuera necesario (opcional en esta arquitectura separada)
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-async function getConnection() {
-    return await mysql.createConnection(dbConfig);
-}
-
-// Ruta por defecto para confirmar que el servidor está online
-/* 
-app.get('/', (req, res) => {
-    res.json({
-        mensaje: 'Bienvenido al Backend del Sistema de Maniquíes',
-        estado: 'online',
-        endpoints_disponibles: {
-            obtener_piezas: 'GET /api/piezas',
-            ensamblar_maniqui: 'POST /api/maniquies'
-        }
-    });
-});
-*/
-
-app.get('/api/piezas', async (req, res) => {
-    try {
-        const connection = await getConnection();
-        const [rows] = await connection.execute('SELECT * FROM piezas');
-        await connection.end();
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({ error: 'Error de BD: ' + error.message });
-    }
-});
-
-app.get('/api/maniquies', async (req, res) => {
-    try {
-        const connection = await getConnection();
-        const [rows] = await connection.execute('SELECT * FROM maniquies');
-        await connection.end();
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({ error: 'Error de BD: ' + error.message });
-    }
-});
-
-app.delete('/api/maniquies/:id', async (req, res) => {
-    const { id } = req.params;
-    let connection;
-    try {
-        connection = await getConnection();
-        await connection.beginTransaction();
-
-        // 1. Obtener IDs de las piezas antes de borrar el maniquí
-        const [maniquis] = await connection.execute(
-            'SELECT id_cabeza, id_torso, id_brazos, id_piernas FROM maniquies WHERE id_maniqui = ?',
-            [id]
-        );
-
-        if (maniquis.length === 0) {
-            throw new Error('Maniquí no encontrado');
-        }
-
-        const { id_cabeza, id_torso, id_brazos, id_piernas } = maniquis[0];
-
-        // 2. Liberar las piezas (volver a "Disponible")
-        await connection.execute(
-            'UPDATE piezas SET estado = "Disponible" WHERE id_pieza IN (?, ?, ?, ?)',
-            [id_cabeza, id_torso, id_brazos, id_piernas]
-        );
-
-        // 3. Borrar el maniquí
-        await connection.execute('DELETE FROM maniquies WHERE id_maniqui = ?', [id]);
-
-        await connection.commit();
-        res.json({ message: 'Maniquí eliminado y piezas liberadas' });
-    } catch (error) {
-        if (connection) await connection.rollback();
-        res.status(400).json({ error: error.message });
-    } finally {
-        if (connection) await connection.end();
-    }
-});
-
-app.post('/api/maniquies', async (req, res) => {
-    console.log('--- Nueva Petición Recibida ---');
-    const { numero_serie, id_cabeza, id_torso, id_brazos, id_piernas } = req.body;
-
-    if (!numero_serie || !id_cabeza || !id_torso || !id_brazos || !id_piernas) {
-        return res.status(400).json({ error: 'Faltan campos obligatorios' });
-    }
-
-    let connection;
-    try {
-        connection = await getConnection();
-        await connection.beginTransaction();
-
-        // 1. Validar disponibilidad
-        const [piezas] = await connection.execute(
-            'SELECT id_pieza, estado FROM piezas WHERE id_pieza IN (?, ?, ?, ?)',
-            [id_cabeza, id_torso, id_brazos, id_piernas]
-        );
-
-        if (piezas.length !== 4) throw new Error('Piezas inexistentes');
-        if (piezas.some(p => p.estado !== 'Disponible')) throw new Error('Piezas ya ocupadas');
-
-        // 2. Insertar Maniquí
-        await connection.execute(
-            'INSERT INTO maniquies (codigo_maniqui, id_cabeza, id_torso, id_brazos, id_piernas, fecha_ensamblaje, estado) VALUES (?, ?, ?, ?, ?, CURDATE(), "En Stock")',
-            [numero_serie, id_cabeza, id_torso, id_brazos, id_piernas]
-        );
-
-        // 3. Actualizar Piezas
-        await connection.execute(
-            'UPDATE piezas SET estado = "Ensamblado" WHERE id_pieza IN (?, ?, ?, ?)',
-            [id_cabeza, id_torso, id_brazos, id_piernas]
-        );
-
-        await connection.commit();
-        res.status(201).json({ message: 'Éxito: Guardado en Base de Datos' });
-    } catch (error) {
-        if (connection) await connection.rollback();
-        res.status(400).json({ error: error.message });
-    } finally {
-        if (connection) await connection.end();
-    }
+// Manejo de errores 404
+app.use((req, res) => {
+    res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
 app.listen(PORT, () => {
     console.log('=========================================');
-    console.log('   SISTEMA CONECTADO A MARIA DB (DOCKER)  ');
-    console.log('       LISTO EN http://localhost:3000    ');
+    console.log(`   SERVIDOR INICIADO EN PUERTO ${PORT}    `);
+    console.log('       LISTO PARA RECIBIR PETICIONES     ');
     console.log('=========================================');
 });
