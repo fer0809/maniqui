@@ -9,6 +9,7 @@ router.get('/piezas', piezasController.getPiezas);
 // Rutas para Maniquíes
 router.get('/maniquies', maniquiesController.getManiquies);
 router.post('/maniquies', maniquiesController.createManiqui);
+router.put('/maniquies/:id', maniquiesController.updateManiqui);
 router.delete('/maniquies/:id', maniquiesController.deleteManiqui);
 
 module.exports = router;

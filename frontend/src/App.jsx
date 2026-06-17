@@ -13,6 +13,7 @@ function App() {
   const [message, setMessage] = useState({ text: '', isError: false, visible: false })
   const [modalOpen, setModalOpen] = useState(false)
   const [maniquiToDelete, setManiquiToDelete] = useState(null)
+  const [editingManiqui, setEditingManiqui] = useState(null)
 
   const loadData = async () => {
     try {
@@ -41,6 +42,11 @@ function App() {
   const handleDeleteRequest = (id) => {
     setManiquiToDelete(id)
     setModalOpen(true)
+  }
+
+  const handleEditRequest = (maniqui) => {
+    setEditingManiqui(maniqui)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const confirmDelete = async () => {
@@ -83,19 +89,26 @@ function App() {
             <div className="card">
               <h2>Maniquíes Ensamblados</h2>
               <div className="table-container-small">
-                <MannequinList maniquies={maniquies} onDelete={handleDeleteRequest} />
+                <MannequinList 
+                  maniquies={maniquies} 
+                  onDelete={handleDeleteRequest} 
+                  onEdit={handleEditRequest}
+                />
               </div>
             </div>
           </div>
 
           <div className="right-col">
             <div className="card">
-              <h2>Ensamblar Maniquí</h2>
+              <h2>{editingManiqui ? 'Editar Maniquí' : 'Ensamblar Maniquí'}</h2>
               <AssemblyForm 
                 piezas={piezas} 
-                onSuccess={() => {
+                editingManiqui={editingManiqui}
+                onCancelEdit={() => setEditingManiqui(null)}
+                onSuccess={(msg) => {
+                  setEditingManiqui(null)
                   loadData()
-                  showMsg('✅ Creado')
+                  showMsg(msg)
                 }} 
                 onError={(err) => showMsg(err, true)}
               />

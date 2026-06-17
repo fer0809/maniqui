@@ -84,4 +84,60 @@ const deleteManiqui = async (req, res) => {
     }
 };
 
-module.exports = { getManiquies, createManiqui, deleteManiqui };
+const updateManiqui = async (req, res) => {
+    const { id } = req.params;
+    const { numero_serie, id_cabeza, id_torso, id_brazos, id_piernas } = req.body;
+
+    let connection;
+    try {
+        connection = await getConnection();
+        await connection.beginTransaction();
+
+        // 1. Obtener piezas actuales
+        const [oldManiqui] = await connection.execute(
+            'SELECT id_cabeza, id_torso, id_brazos, id_piernas FROM maniquies WHERE id_maniqui = ?',
+            [id]
+        );
+        if (oldManiqui.length === 0) throw new Error('Maniquí no encontrado');
+
+        const oldIds = [oldManiqui[0].id_cabeza, oldManiqui[0].id_torso, oldManiqui[0].id_brazos, oldManiqui[0].id_piernas];
+
+        // 2. Liberar piezas viejas temporalmente para la validación
+        await connection.execute(
+            'UPDATE piezas SET estado = "Disponible" WHERE id_pieza IN (?, ?, ?, ?)',
+            oldIds
+        );
+
+        // 3. Validar nuevas piezas
+        const newIds = [id_cabeza, id_torso, id_brazos, id_piernas];
+        const [nuevasPiezas] = await connection.execute(
+            'SELECT id_pieza, estado FROM piezas WHERE id_pieza IN (?, ?, ?, ?)',
+            newIds
+        );
+
+        if (nuevasPiezas.length !== 4) throw new Error('Algunas piezas nuevas no existen');
+        if (nuevasPiezas.some(p => p.estado !== 'Disponible')) throw new Error('Algunas piezas nuevas ya están ocupadas');
+
+        // 4. Actualizar maniquí
+        await connection.execute(
+            'UPDATE maniquies SET codigo_maniqui = ?, id_cabeza = ?, id_torso = ?, id_brazos = ?, id_piernas = ? WHERE id_maniqui = ?',
+            [numero_serie, id_cabeza, id_torso, id_brazos, id_piernas, id]
+        );
+
+        // 5. Ocupar nuevas piezas
+        await connection.execute(
+            'UPDATE piezas SET estado = "Ensamblado" WHERE id_pieza IN (?, ?, ?, ?)',
+            newIds
+        );
+
+        await connection.commit();
+        res.json({ message: 'Maniquí actualizado con éxito' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        res.status(400).json({ error: error.message });
+    } finally {
+        if (connection) await connection.end();
+    }
+};
+
+module.exports = { getManiquies, createManiqui, deleteManiqui, updateManiqui };
