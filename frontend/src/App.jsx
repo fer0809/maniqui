@@ -61,7 +61,7 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>Fábrica de Maniquíes - Gestión Pro</h1>
+        <h1>Fábrica de Maniquíes</h1>
       </header>
 
       <main>
